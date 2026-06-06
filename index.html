@@ -556,7 +556,7 @@
 const CONFIG = {
   // Número de WhatsApp del negocio, formato internacional SIN +, SIN espacios.
   // México: 52 + LADA + número. Ej: 523411234567
-  whatsapp: '523411234567',
+  whatsapp: '523412857366',
   // Usuario de Instagram (sin @) por si prefieren DM como respaldo
   instagram: 'intensity.community',
   moneda: '$',
@@ -725,7 +725,7 @@ function closeDrawer(){drawer.classList.remove('open');drawerBg.classList.remove
 /* ====== CHECKOUT POR WHATSAPP ====== */
 document.getElementById('checkoutBtn').addEventListener('click',()=>{
   if(cart.length===0){showToast('Tu carrito está vacío');return;}
-  let msg=`¡Hola Intensity! 🔥 Quiero hacer este pedido:\n\n`;
+  let msg=`Hola, que tal?, me gustaría hacer este pedido:\n\n`;
   cart.forEach((i,n)=>{
     msg+=`${n+1}. ${i.name}\n   Talla: ${i.size}  ·  Cantidad: ${i.qty}\n   Precio: ${CONFIG.moneda}${i.price} c/u\n\n`;
   });
