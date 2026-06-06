@@ -730,7 +730,7 @@ document.getElementById('checkoutBtn').addEventListener('click',()=>{
     msg+=`${n+1}. ${i.name}\n   Talla: ${i.size}  ·  Cantidad: ${i.qty}\n   Precio: ${CONFIG.moneda}${i.price} c/u\n\n`;
   });
   const sub=cart.reduce((s,i)=>s+i.price*i.qty,0);
-  msg+=`────────────\nTOTAL: ${CONFIG.moneda}${sub.toFixed(2)}\n────────────\n\n¿Me confirman disponibilidad y cómo pagar? 🙌`;
+  msg+=`────────────\nTOTAL: ${CONFIG.moneda}${sub.toFixed(2)}\n────────────\n\nMe puedes decir formas de pago?`;
   const url=`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(msg)}`;
   window.open(url,'_blank');
 });
