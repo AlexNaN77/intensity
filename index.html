@@ -6,7 +6,7 @@
 <title>Intensity Community — Viste tu intensidad</title>
 <meta name="description" content="Streetwear oversize hecho para los que no se conforman. Playeras, pants baggy y más. Sin permiso, sin filtros.">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="https://www.genspark.ai/agents?id=f3fb7006-1c04-47d2-a054-5f2457616b02" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,600&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -119,27 +119,110 @@
 
   .hero-cta{position:relative;z-index:3;display:flex;gap:16px;justify-content:center;margin-top:48px;flex-wrap:wrap}
 
-  /* Botones: texto que se desliza, nunca se pierde */
-  .btn-hero{position:relative;display:inline-flex;align-items:center;gap:10px;padding:19px 40px;border-radius:999px;font-weight:600;font-size:12px;letter-spacing:.25em;text-transform:uppercase;overflow:hidden;border:1px solid transparent;transition:border-color .4s var(--ease)}
-  .btn-hero .txt{position:relative;display:inline-flex;align-items:center;gap:10px;transition:transform .45s var(--ease)}
-  .btn-hero .txt .material-icons{font-size:16px}
-  /* capa de texto duplicada que entra desde abajo */
-  .btn-hero .txt-hover{position:absolute;inset:0;display:inline-flex;align-items:center;justify-content:center;gap:10px;transform:translateY(110%);transition:transform .45s var(--ease)}
-  .btn-hero::before{content:"";position:absolute;inset:0;z-index:0;border-radius:999px;transform:scaleY(0);transform-origin:bottom;transition:transform .45s var(--ease)}
-  .btn-hero:hover::before{transform:scaleY(1)}
-  .btn-hero:hover .txt{transform:translateY(-110%)}
-  .btn-hero:hover .txt-hover{transform:translateY(0)}
-  .btn-hero .txt,.btn-hero .txt-hover{z-index:1}
-  /* primario */
-  .btn-hero.primary{background:var(--cream);color:#000}
-  .btn-hero.primary::before{background:var(--red)}
-  .btn-hero.primary .txt-hover{color:var(--cream)}
-  .btn-hero.primary:hover{border-color:var(--red)}
-  /* ghost */
+           /* ====== BOTONES HERO — SHADER-LIKE (CSS+GSAP) ====== */
+  @property --bh-angle{ syntax:'<angle>'; inherits:false; initial-value:0deg; }
+  @property --bh-fill{ syntax:'<percentage>'; inherits:false; initial-value:0%; }
+
+  .btn-hero{
+    position:relative;
+    display:inline-flex;align-items:center;justify-content:center;gap:10px;
+    padding:19px 40px;border-radius:999px;
+    font-weight:600;font-size:12px;letter-spacing:.25em;text-transform:uppercase;
+    overflow:hidden;border:1px solid transparent;isolation:isolate;
+    contain:paint;            /* FIX: nada se desborda fuera del botón */
+    will-change:transform;
+    transition:border-color .4s var(--ease),color .45s var(--ease),box-shadow .4s var(--ease);
+  }
+
+  /* Texto SIEMPRE nítido por encima de todas las capas */
+  .btn-hero .txt{
+    position:relative;z-index:4;display:inline-flex;align-items:center;gap:10px;
+    transition:color .45s var(--ease);
+    mix-blend-mode:normal;
+    pointer-events:none;      /* el click siempre lo recibe el <a>, no el texto */
+  }
+  .btn-hero .txt .material-icons{font-size:16px;transition:transform .4s var(--ease)}
+  .btn-hero:hover .txt .material-icons{transform:translateX(5px)}
+
+  /* CAPA 1 — liquid fill: plasma rojo que sube desde abajo */
+  .btn-hero::before{
+    content:"";position:absolute;inset:0;z-index:1;border-radius:inherit;
+    background:
+      radial-gradient(120% 140% at 50% 120%, var(--red) 0%, var(--red-deep) 55%, #5e0a04 100%),
+      conic-gradient(from var(--bh-angle), var(--red), #ff5a3c, var(--red-deep), var(--red));
+    background-blend-mode:overlay;
+    clip-path:inset(calc(100% - var(--bh-fill)) 0 0 0 round 999px);
+    transition:clip-path .5s var(--ease);
+    pointer-events:none;
+  }
+
+  /* CAPA 2 — glow reactivo que sigue al cursor */
+  .btn-hero::after{
+    content:"";position:absolute;inset:-2px;z-index:2;border-radius:inherit;
+    background:radial-gradient(180px 180px at var(--bh-mx,50%) var(--bh-my,50%),
+              rgba(255,120,90,.55), transparent 60%);
+    opacity:0;transition:opacity .4s var(--ease);pointer-events:none;mix-blend-mode:screen;
+  }
+  .btn-hero:hover::after{opacity:1}
+
+  /* CAPA 3 — grain sutil */
+  .btn-hero .bh-grain{
+    position:absolute;inset:0;z-index:3;border-radius:inherit;pointer-events:none;
+    opacity:0;mix-blend-mode:overlay;transition:opacity .4s var(--ease);
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='b'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23b)'/%3E%3C/svg%3E");
+    background-size:120px 120px;
+  }
+  .btn-hero:hover .bh-grain{opacity:.35}
+
+  /* CAPA ripple — onda desde el click. SIEMPRE pointer-events:none y dentro del botón */
+  .btn-hero .bh-ripple{
+    position:absolute;z-index:3;border-radius:50%;
+    pointer-events:none !important;       /* NUNCA bloquea clicks */
+    background:radial-gradient(circle, rgba(255,255,255,.5), transparent 70%);
+    mix-blend-mode:overlay;transform:translate(-50%,-50%) scale(0);
+  }
+
+  /* Activa el fill y el giro del plasma al hover */
+  .btn-hero:hover{ --bh-fill:108%; }
+  .btn-hero:hover::before{ animation:bhPlasma 6s linear infinite; }
+  @keyframes bhPlasma{ to{ --bh-angle:360deg; } }
+
+  /* PRIMARIO: cara crema en reposo, se llena de rojo al hover (texto crema siempre legible) */
+  .btn-hero.primary{
+    background:var(--red-deep);
+    color:#000;
+    box-shadow: inset 0 0 0 100px var(--cream);
+    transition:border-color .4s var(--ease),color .45s var(--ease),box-shadow .45s var(--ease);
+  }
+  .btn-hero.primary:hover{
+    color:var(--cream);
+    border-color:var(--red);
+    box-shadow: inset 0 0 0 0 var(--cream), 0 0 40px var(--red-glow);
+  }
+
+  /* GHOST: transparente -> plasma rojo, texto pasa a crema */
   .btn-hero.ghost{background:transparent;color:var(--cream);border-color:rgba(241,237,228,.28)}
-  .btn-hero.ghost::before{background:var(--cream)}
-  .btn-hero.ghost .txt-hover{color:#000}
-  .btn-hero.ghost:hover{border-color:var(--cream)}
+  .btn-hero.ghost:hover{color:var(--cream);border-color:var(--red);box-shadow:0 0 40px var(--red-glow)}
+
+  /* Click: micro-squash solo en el texto */
+  .btn-hero:active .txt{transform:scale(.96)}
+
+  /* Foco visible */
+  .btn-hero:focus-visible{outline:2px solid var(--cream);outline-offset:4px}
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion:reduce){
+    .btn-hero,.btn-hero::before,.btn-hero::after,.btn-hero .bh-grain{transition:none!important;animation:none!important}
+    .btn-hero:hover::before{animation:none!important}
+  }
+
+  /* Móvil */
+  @media (max-width:640px){
+    .btn-hero:hover .bh-grain{opacity:0}
+    .btn-hero::after{background:radial-gradient(120px 120px at var(--bh-mx,50%) var(--bh-my,50%),rgba(255,120,90,.45),transparent 60%)}
+  }
+  
+  
 
   .scroll-hint{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:12px;z-index:3;font-family:'Fraunces',serif;font-style:italic;text-transform:lowercase;font-size:13px;letter-spacing:.05em}
   .scroll-hint::after{content:"";width:1px;height:46px;background:linear-gradient(transparent,var(--red));animation:bounce 2s infinite}
@@ -404,14 +487,14 @@
       <span class="fade">Cortes que imponen · Telas que aguantan</span>
     </p>
   </div>
-  <div class="hero-cta">
+        <div class="hero-cta">
     <a href="#tienda" class="btn-hero primary" data-cursor="hover">
+      <span class="bh-grain"></span>
       <span class="txt">Ver el drop <span class="material-icons">arrow_forward</span></span>
-      <span class="txt-hover">Ver el drop <span class="material-icons">arrow_forward</span></span>
     </a>
     <a href="#manifiesto" class="btn-hero ghost" data-cursor="hover">
+      <span class="bh-grain"></span>
       <span class="txt">Quiénes somos</span>
-      <span class="txt-hover">Quiénes somos</span>
     </a>
   </div>
   <div class="scroll-hint">scroll</div>
@@ -556,7 +639,7 @@
 const CONFIG = {
   // Número de WhatsApp del negocio, formato internacional SIN +, SIN espacios.
   // México: 52 + LADA + número. Ej: 523411234567
-  whatsapp: '523412857366',
+  whatsapp: '523411234567',
   // Usuario de Instagram (sin @) por si prefieren DM como respaldo
   instagram: 'intensity.community',
   moneda: '$',
@@ -725,12 +808,12 @@ function closeDrawer(){drawer.classList.remove('open');drawerBg.classList.remove
 /* ====== CHECKOUT POR WHATSAPP ====== */
 document.getElementById('checkoutBtn').addEventListener('click',()=>{
   if(cart.length===0){showToast('Tu carrito está vacío');return;}
-  let msg=`Hola, que tal?, me gustaría hacer este pedido:\n\n`;
+  let msg=`¡Hola Intensity! 🔥 Quiero hacer este pedido:\n\n`;
   cart.forEach((i,n)=>{
     msg+=`${n+1}. ${i.name}\n   Talla: ${i.size}  ·  Cantidad: ${i.qty}\n   Precio: ${CONFIG.moneda}${i.price} c/u\n\n`;
   });
   const sub=cart.reduce((s,i)=>s+i.price*i.qty,0);
-  msg+=`────────────\nTOTAL: ${CONFIG.moneda}${sub.toFixed(2)}\n────────────\n\nMe puedes decir formas de pago?`;
+  msg+=`────────────\nTOTAL: ${CONFIG.moneda}${sub.toFixed(2)}\n────────────\n\n¿Me confirman disponibilidad y cómo pagar? 🙌`;
   const url=`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(msg)}`;
   window.open(url,'_blank');
 });
@@ -783,6 +866,84 @@ gsap.from('.foot-grid > *',{opacity:0,y:30,duration:.7,stagger:.1,scrollTrigger:
 const marqueeEl=document.querySelector('.marquee'),marqueeTrack=document.querySelector('.marquee-track');
 marqueeEl.addEventListener('mouseenter',()=>marqueeTrack.style.animationPlayState='paused');
 marqueeEl.addEventListener('mouseleave',()=>marqueeTrack.style.animationPlayState='running');
+
+
+/* ====== BOTONES HERO — MAGNETIC + GLOW + RIPPLE (FIX 2: sin ripples colgados) ====== */
+(function(){
+  const reduce = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  const fine   = window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+  const btns = document.querySelectorAll('.hero-cta .btn-hero');
+
+  const MAX_PULL = 8;
+  const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
+
+  btns.forEach(btn=>{
+    if(fine && !reduce){
+      const txt   = btn.querySelector('.txt');
+      const setX  = gsap.quickTo(btn, 'x', {duration:.5, ease:'power3.out'});
+      const setY  = gsap.quickTo(btn, 'y', {duration:.5, ease:'power3.out'});
+      const setTX = gsap.quickTo(txt, 'x', {duration:.5, ease:'power3.out'});
+      const setTY = gsap.quickTo(txt, 'y', {duration:.5, ease:'power3.out'});
+
+      btn.addEventListener('mousemove', e=>{
+        const r = btn.getBoundingClientRect();
+        const curX = gsap.getProperty(btn, 'x');
+        const curY = gsap.getProperty(btn, 'y');
+        const baseCx = (r.left - curX) + r.width/2;
+        const baseCy = (r.top  - curY) + r.height/2;
+
+        btn.style.setProperty('--bh-mx', ((e.clientX - r.left)/r.width*100) + '%');
+        btn.style.setProperty('--bh-my', ((e.clientY - r.top )/r.height*100) + '%');
+
+        const pullX = clamp((e.clientX - baseCx)*0.25, -MAX_PULL, MAX_PULL);
+        const pullY = clamp((e.clientY - baseCy)*0.35, -MAX_PULL*1.2, MAX_PULL*1.2);
+        setX(pullX); setY(pullY);
+        setTX(pullX*0.4); setTY(pullY*0.4);
+      });
+
+      btn.addEventListener('mouseleave', ()=>{
+        gsap.to(btn, {x:0, y:0, duration:.6, ease:'elastic.out(1,.5)'});
+        gsap.to(txt, {x:0, y:0, duration:.6, ease:'elastic.out(1,.5)'});
+      });
+    }
+
+    // --- RIPPLE: solo UNO a la vez, con borrado forzado (mata el bug de presión larga)
+    let activeRipple = null;
+    function clearRipple(){
+      if(activeRipple){
+        gsap.killTweensOf(activeRipple);
+        activeRipple.remove();
+        activeRipple = null;
+      }
+    }
+    btn.addEventListener('pointerdown', e=>{
+      clearRipple();                       // borra cualquier ripple previo antes de crear otro
+      const r = btn.getBoundingClientRect();
+      const size = Math.max(r.width, r.height) * 1.4;   // más chico: no se desborda
+      const ripple = document.createElement('span');
+      ripple.className = 'bh-ripple';
+      ripple.style.width = ripple.style.height = size + 'px';
+      ripple.style.left = (e.clientX - r.left) + 'px';
+      ripple.style.top  = (e.clientY - r.top)  + 'px';
+      btn.appendChild(ripple);
+      activeRipple = ripple;
+
+      if(reduce){ setTimeout(clearRipple, 50); return; }
+      gsap.fromTo(ripple,
+        {scale:0, opacity:.5},
+        {scale:1, opacity:0, duration:.6, ease:'power2.out', onComplete:clearRipple}
+      );
+      // red de seguridad: pase lo que pase, el ripple muere en 800ms
+      setTimeout(()=>{ if(activeRipple===ripple) clearRipple(); }, 800);
+    });
+    // Si sueltas, cancelas o sales del botón, el ripple se limpia igual
+    btn.addEventListener('pointerup', ()=>{ setTimeout(clearRipple, 650); });
+    btn.addEventListener('pointercancel', clearRipple);
+    btn.addEventListener('pointerleave', ()=>{ setTimeout(clearRipple, 650); });
+  });
+})();
+
+
 </script>
 </body>
 </html>
